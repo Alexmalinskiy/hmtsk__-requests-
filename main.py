@@ -14,8 +14,10 @@ def translate_file(from_file, to_lang, from_lang, to_file):
      & [format=<формат текста>]
      & [options=<опции перевода>]
      & [callback=<имя callback-функции>]
-    :param text: <str> text for translation.
-    :return: <str> translated text.
+    :param from_file: <str> file for translation.
+    :param to_lang: <str> lang translated to.
+    :param from_lang: <str> lang translated from.
+    :param to_file: <str> file translation text to
     """
     url = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
     key = 'trnsl.1.1.20161025T233221Z.47834a66fd7895d0.a95fd4bfde5c1794fa433453956bd261eae80152'
