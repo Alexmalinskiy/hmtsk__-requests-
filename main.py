@@ -3,7 +3,7 @@ import os.path
 import requests
 
 
-def translate_file(from_file, to_lang, from_lang, to_file):
+def get_file_translate(from_lang, to_lang, text):
     """
     YANDEX translation plugin
     docs: https://tech.yandex.ru/translate/doc/dg/reference/translate-docpage/
@@ -14,38 +14,50 @@ def translate_file(from_file, to_lang, from_lang, to_file):
      & [format=<формат текста>]
      & [options=<опции перевода>]
      & [callback=<имя callback-функции>]
-    :param from_file: <str> file for translation.
-    :param to_lang: <str> lang translated to.
     :param from_lang: <str> lang translated from.
-    :param to_file: <str> file translation text to
+    :param to_lang: <str> lang translated to.
+    :param text: <str> text for translation.
     """
     url = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
     key = 'trnsl.1.1.20161025T233221Z.47834a66fd7895d0.a95fd4bfde5c1794fa433453956bd261eae80152'
 
-    with open(from_file, 'r', encoding='utf8') as file:
-        params = {
-            'key': key,
-            'lang': from_lang + '-' + to_lang,
-            'text': file.read(),
-        }
-        response = requests.get(url, params=params).json()
-        translated = ' '.join(response.get('text', []))
-
-    with open(to_file, 'w') as f:
-        f.write(translated)
+    params = {
+        'key': key,
+        'lang': from_lang + '-' + to_lang,
+        'text': text,
+    }
+    response = requests.get(url, params=params).json()
+    return ' '.join(response.get('text', []))
 
 
-def get_files_for_translation(path):
-    return [file for file in os.listdir(path) if os.path.splitext(file.lower())[1] == ".txt"]
+def get_file_text(file):
+    with open(file, 'r', encoding='utf8') as f:
+        text = f.read()
+    lang = os.path.splitext(file)[0]
+    return text, lang
+
+
+def write_file_translation(new_file, new_text):
+    with open(new_file, 'w', encoding='utf8') as f:
+        f.write(new_text)
+    print('File with translation {0} has been written successfully'.format(new_file))
+
+
+def get_txt_files_for_translation():
+    files = []
+    for file in os.listdir(os.path.abspath(os.path.dirname(__file__))):
+        extension = os.path.splitext(file.lower())[1]
+        if extension == ".txt":
+            files.append(file)
+    return files
 
 
 def main_func(to_lang):
-    path = os.path.abspath(os.path.dirname(__file__))
-    files = get_files_for_translation(path)
+    files = get_txt_files_for_translation()
     for file in files:
-        translate_file(from_file=file, to_lang=to_lang, from_lang=os.path.splitext(file.lower())[0],
-                       to_file=file.replace(os.path.splitext(file.lower())[1],
-                                            "_transl_to_"+to_lang+os.path.splitext(file.lower())[1]))
+        file_text, from_lang = get_file_text(file)
+        trans_text = get_file_translate(from_lang, to_lang, file_text)
+        write_file_translation(file.replace(from_lang, from_lang.lower() + "-" + to_lang), trans_text)
 
 
 if __name__ == '__main__':
